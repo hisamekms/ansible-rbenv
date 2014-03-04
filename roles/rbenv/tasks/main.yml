@@ -1,0 +1,10 @@
+---
+- name: Install dependencies
+  yum: name=git state=present
+
+- name: Git clone rbenv
+  git: repo=https://github.com/sstephenson/rbenv.git dest={{ rbenv_root }} version=master
+
+- name: Add rbenv to path
+  file: path=/usr/local/bin/rbenv src={{ rbenv_root }}/bin/rbenv state=link
+

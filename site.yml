@@ -1,0 +1,6 @@
+---
+- name: Install rbenv
+  hosts: ruby
+  user: root
+  roles:
+    - rbenv
