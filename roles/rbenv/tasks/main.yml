@@ -2,9 +2,56 @@
 - name: Install dependencies
   yum: name=git state=present
 
+- name: Add rbenv group
+  command: groupadd rbenv
+  ignore_errors: yes
+
 - name: Git clone rbenv
   git: repo=https://github.com/sstephenson/rbenv.git dest={{ rbenv_root }} version=master
+
+- name: Change group rbenv_root
+  command: chgrp rbenv {{ rbenv_root  }}
+
+- name: chmod rbenv_root
+  command: chmod 775 {{ rbenv_root }}
+
+- name: Add shims directory
+  file: path={{ rbenv_root }}/shims state=directory owner=root group=rbenv mode=0775
+
+- name: Add versions directory
+  file: path={{ rbenv_root }}/versions state=directory owner=root group=rbenv mode=0775
+
+#- name: Add version file
+#  file: path={{ rbenv_root }}/version state=file owner=root group=rbenv mode=0775
+
+- name: Git clone ruby_build
+  git: repo=https://github.com/sstephenson/ruby-build.git dest={{ rbenv_root }}/plugins/ruby_build version=master
 
 - name: Add rbenv to path
   file: path=/usr/local/bin/rbenv src={{ rbenv_root }}/bin/rbenv state=link
 
+- name: Add rbenv initialization to profile
+  template: src=rbenv.sh.j2 dest=/etc/profile.d/rbenv.sh owner=root group=root mode=0755
+
+#- name: Check ruby-build installed
+#  command: test -x /usr/local/bin/ruby-build
+#  register: rbuild_present
+#  ignore_errors: yes
+#
+#- name: Create temporary directory
+#  command: mktemp -d
+#  register: tempdir
+#  when: rbuild_present|failed
+#
+#- name: Git clone ruby-build repo
+#  git: repo=git://github.com/sstephenson/ruby-build.git dest={{ tempdir.stdout }}/ruby-build
+#  when: rbuild_present|failed
+#
+#- name: Install ruby-build
+#  command: ./install.sh chdir={{ tempdir.stdout }}/ruby-build
+#  when: rbuild_present|failed
+#
+#- name: Remove temporary directory
+#  file: path={{ tempdir.stdout }} state=absent
+#  when: rbuild_present|failed
+#
